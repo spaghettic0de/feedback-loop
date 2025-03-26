@@ -17,60 +17,12 @@ import {
   Hint, 
   InterviewState,
   ApiQuestionResponse,
+  ApiQuestionResponseStructured,
   CATEGORIES,
-  Difficulty
+  Category,
+  Difficulty,
+  ProblemHistoryItem
 } from "@/lib/types";
-
-// Define custom components for ReactMarkdown
-const MarkdownComponents = {
-	code({ node, inline, className, children, ...props }: any) {
-		const match = /language-(\w+)/.exec(className || '');
-		const language = match ? match[1] : '';
-		const content = String(children).replace(/\n$/, '');
-		
-		// Simple approach: If it's inline or doesn't have a language, render as inline code
-		if (inline || !match) {
-			// This is inline code
-			return (
-				<code className="inline-code" {...props}>
-					{content}
-				</code>
-			);
-		}
-		
-		// Otherwise, it's a code block with a specified language
-		return (
-			<pre className={`${className || ''} overflow-auto rounded-md p-3 bg-gray-100 dark:bg-gray-800`}>
-				<code className={language ? `language-${language}` : ''} {...props}>
-					{children}
-				</code>
-			</pre>
-		);
-	},
-	table({ children }: any) {
-		return (
-			<div className="overflow-x-auto my-4">
-				<table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 border border-gray-200 dark:border-gray-700 rounded-md">
-					{children}
-				</table>
-			</div>
-		);
-	},
-	th({ children }: any) {
-		return (
-			<th className="px-4 py-3 bg-gray-50 dark:bg-gray-800 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-				{children}
-			</th>
-		);
-	},
-	td({ children }: any) {
-		return (
-			<td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-t border-gray-200 dark:border-gray-700">
-				{children}
-			</td>
-		);
-	}
-};
 
 // Helper function to create form data from an object
 function createFormData(data: Record<string, any>): FormData {
@@ -379,36 +331,39 @@ export default function ProblemPage() {
     toast.loading("Evaluating your answer...");
     
     try {
-      // Add the user's answer to messages
+      // Get the user's answer
       const userAnswer = state.textInput.trim();
-      const updatedMessages: Message[] = [
+      
+      // Create a copy of messages with the new user message for evaluation
+      // But don't update the state yet to prevent duplicate messages
+      const messagesForEvaluation: Message[] = [
         ...state.messages,
         { role: "user" as const, content: userAnswer }
       ];
       
-      // Update messages with the user input
+      // Clear input field immediately
       setState(prev => ({
         ...prev,
-        messages: updatedMessages,
-        textInput: "", // Clear the input after submission
+        textInput: ""
       }));
       
       // Evaluate the answer
       if (state.category) {
         console.log("Evaluating answer for category:", state.category);
-        const evaluation = await evaluateAnswer(state.category, updatedMessages);
+        const evaluation = await evaluateAnswer(state.category, messagesForEvaluation);
         
         if (evaluation) {
-          console.log("Evaluation received, updating state to idle");
-          // Add the evaluation to messages
+          console.log("Evaluation received, updating state with both messages");
+          
+          // Update the UI with both the user message and evaluation response
           setState(prev => ({
             ...prev,
             isLoading: false,
             currentStep: "idle",
             messages: [
-              ...prev.messages,
-              { role: "user" as const, content: userAnswer },
-              { role: "assistant" as const, content: evaluation }
+              ...state.messages,
+              { role: "user", content: userAnswer },
+              { role: "assistant", content: evaluation }
             ]
           }));
           
@@ -524,10 +479,10 @@ export default function ProblemPage() {
   // These will be added in subsequent edits
   
   // Temporary placeholders for functions
-  const evaluateAnswer = async (category: string, messages: Message[]) => {
+  /*const evaluateAnswer = async (category: string, messages: Message[]) => {
     // Placeholder - to be implemented
     return "Placeholder evaluation";
-  };
+  };*/
   
   const fetchQuestion = async (category: string) => {
     // Make API request to get a question for the specified category
@@ -564,7 +519,9 @@ export default function ProblemPage() {
         // If we have structured content, use it to parse the question and hints
         const questionText = data.structuredContent.question;
         const hintTexts = data.structuredContent.hints;
-        const difficulty = data.structuredContent.difficulty || "medium"; // Default to medium if not provided
+        // Use the difficulty directly from the API response or default to medium
+        const difficulty = data.structuredContent.difficulty || "medium";
+        console.log(`Question difficulty from API: ${difficulty}`);
         
         // Create hint objects
         const hints: Hint[] = hintTexts.map((text, index) => ({
@@ -618,24 +575,25 @@ export default function ProblemPage() {
     );
   };
 
+  // Toggle hint visibility function - move inside the component
+  const toggleHintVisibility = (index: number) => {
+    setState(prevState => {
+      const updatedHints = [...prevState.hints];
+      if (updatedHints[index]) {
+        updatedHints[index] = {
+          ...updatedHints[index],
+          visible: !updatedHints[index].visible
+        };
+      }
+      return {
+        ...prevState,
+        hints: updatedHints
+      };
+    });
+  };
+
   // Render category selection when not active
   if (!state.isActive) {
-    // Function to get the difficulty level for each category
-    const getCategoryDifficulty = (id: string): Difficulty => {
-      const mapping: Record<string, Difficulty> = {
-        "algorithms": "hard",
-        "system_design": "hard",
-        "networking": "medium",
-        "databases": "medium",
-        "os": "medium",
-        "concurrency": "hard",
-        "web": "easy",
-        "devops": "medium",
-        "security": "hard"
-      };
-      return mapping[id] || "medium";
-    };
-    
     return (
       <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-950 p-6">
         <div className="max-w-3xl mx-auto">
@@ -648,8 +606,6 @@ export default function ProblemPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {CATEGORIES.map((category) => {
-              const difficulty = getCategoryDifficulty(category.id);
-              
               return (
                 <button
                   key={category.id}
@@ -660,7 +616,6 @@ export default function ProblemPage() {
                     <h3 className="font-medium text-lg text-gray-900 dark:text-white">
                       {category.name}
                     </h3>
-                    <DifficultyBadge difficulty={difficulty} />
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {getCategoryDescription(category.id)}
@@ -681,7 +636,7 @@ export default function ProblemPage() {
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-3">
-              {CATEGORIES.find((c: any) => c.id === state.category)?.name}
+              {CATEGORIES.find((c: any) => c.id === state.category)?.name || "Interview"}
             </h2>
             {state.difficulty && (
               <DifficultyBadge difficulty={state.difficulty} />
@@ -725,13 +680,125 @@ export default function ProblemPage() {
                 </>
               )}
             </Button>
+            <Button 
+              onClick={resetInterview}
+              variant="outline"
+              size="sm"
+            >
+              End Interview
+            </Button>
           </div>
         </div>
       </header>
       
       <div className="flex-1 overflow-y-auto">
-        <div className="p-6">
-          <p>Problem content will be implemented in the next steps...</p>
+        <div className="max-w-3xl mx-auto p-6">
+          {/* Messages */}
+          <div className="space-y-6 mb-6">
+            {state.messages.map((message, index) => (
+              <div 
+                key={index} 
+                className={`flex ${message.role === "assistant" ? "justify-start" : "justify-end"}`}
+              >
+                <div 
+                  className={`rounded-lg p-4 max-w-[85%] ${
+                    message.role === "assistant" 
+                      ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100" 
+                      : "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100"
+                  }`}
+                >
+                  <ReactMarkdown
+                    rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
+                    components={MarkdownComponents}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+          
+          {/* Updated Hints section */}
+          {state.hints.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {state.hints.map((hint, index) => (
+                <div key={index} className="bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => toggleHintVisibility(index)}
+                    className="flex justify-between items-center w-full p-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                  >
+                    <span>Hint {index + 1}</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`h-4 w-4 transition-transform duration-200 ${hint.visible ? 'transform rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {hint.visible && (
+                    <div className="p-3 pt-0 text-sm text-gray-600 dark:text-gray-400 prose-sm prose-gray">
+                      <ReactMarkdown
+                        rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
+                        components={MarkdownComponents}
+                      >
+                        {hint.text}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Input area */}
+          {state.currentStep === "input" && (
+            <div className="mt-6">
+              <div className="relative">
+                <Textarea
+                  value={state.textInput}
+                  onChange={handleTextInputChange}
+                  placeholder="Type your answer here..."
+                  className="w-full p-3 min-h-[120px] border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 pr-12"
+                  rows={3}
+                />
+                <Button
+                  onClick={submitTextAnswer}
+                  disabled={!state.textInput.trim() || state.isLoading}
+                  className="absolute right-2 bottom-2 p-2"
+                  size="icon"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          {/* "Ask New Question" button */}
+          {state.currentStep === "idle" && (
+            <div className="mt-6">
+              <Button
+                onClick={askNewQuestion}
+                disabled={state.isLoading}
+                className="w-full"
+              >
+                Ask New Question
+              </Button>
+            </div>
+          )}
+          
+          {/* Loading indicator */}
+          {state.isLoading && (
+            <div className="flex justify-center mt-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -758,7 +825,6 @@ function getCategoryDescription(id: string): string {
 // Add proper function implementations
 async function evaluateAnswer(category: string, messages: Message[]): Promise<string | null> {
   console.log("Evaluating answer for category:", category);
-  console.log("Messages:", messages);
   
   try {
     const formData = createFormData({
@@ -767,6 +833,7 @@ async function evaluateAnswer(category: string, messages: Message[]): Promise<st
       messages,
     });
     
+    console.log("Sending evaluation request to API");
     const response = await fetch("/api", {
       method: "POST",
       body: formData,
@@ -778,7 +845,7 @@ async function evaluateAnswer(category: string, messages: Message[]): Promise<st
         const errorData = await response.json();
         throw new Error(errorData.error || `Server error: ${response.status}`);
       } catch (parseError) {
-        throw new Error(`Failed to fetch evaluation. Server returned ${response.status}`);
+        throw new Error(`Failed to evaluate answer. Server returned ${response.status}`);
       }
     }
     
@@ -925,23 +992,6 @@ const stopRecording = async () => {
   // Implemented in a separate edit
 };
 
-// Add a function to toggle hint visibility
-const toggleHintVisibility = (index: number) => {
-  setState(prevState => {
-    const updatedHints = [...prevState.hints];
-    if (updatedHints[index]) {
-      updatedHints[index] = {
-        ...updatedHints[index],
-        visible: !updatedHints[index].visible
-      };
-    }
-    return {
-      ...prevState,
-      hints: updatedHints
-    };
-  });
-};
-
 // Add a function to ask for a new question
 const askNewQuestion = async () => {
   if (!state.category) return;
@@ -995,57 +1045,6 @@ const askNewQuestion = async () => {
       currentStep: "idle"
     }));
   }
-};
-
-// Render the HintsAccordion component
-const HintsAccordion = ({ hints }: { hints: Hint[] }) => {
-  if (!hints || hints.length === 0) {
-    return null;
-  }
-  
-  return (
-    <div className="mt-4 bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden">
-      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 p-3 border-b border-gray-200 dark:border-gray-800">
-        Hints Available
-      </h3>
-      <div className="divide-y divide-gray-200 dark:divide-gray-800">
-        {hints.map((hint, index) => (
-          <div key={index} className="p-3">
-            <button
-              onClick={() => toggleHintVisibility(index)}
-              className="flex justify-between items-center w-full text-left text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-            >
-              <span>Hint {index + 1}</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className={`h-4 w-4 transition-transform ${hint.visible ? 'transform rotate-180' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            {hint.visible && (
-              <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 prose-xs prose-gray">
-                <ReactMarkdown
-                  rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
-                  components={MarkdownComponents}
-                >
-                  {hint.text}
-                </ReactMarkdown>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Add a function to format the question with markdown
-const formatQuestionWithMarkdown = (text: string): string => {
-  return text;
 };
 
 // Function to reset the interview state

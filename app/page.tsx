@@ -1364,25 +1364,6 @@ export default function Home() {
 					
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 						{CATEGORIES.map((category) => {
-							// Assign a difficulty level to each category
-							// This is just for demonstration - in a real app, you might want to fetch this data
-							const getDifficulty = (id: string): "easy" | "medium" | "hard" => {
-								const mapping: Record<string, "easy" | "medium" | "hard"> = {
-									"algorithms": "hard",
-									"system_design": "hard",
-									"networking": "medium",
-									"databases": "medium",
-									"os": "medium",
-									"concurrency": "hard",
-									"web": "easy",
-									"devops": "medium",
-									"security": "hard"
-								};
-								return mapping[id] || "medium";
-							};
-							
-							const difficulty = getDifficulty(category.id);
-							
 							return (
 								<Link 
 									href={`/problems/${crypto.randomUUID()}?category=${category.id}`}
@@ -1393,7 +1374,6 @@ export default function Home() {
 										<h3 className="font-medium text-lg text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
 											{category.name}
 										</h3>
-										<DifficultyBadge difficulty={difficulty} />
 									</div>
 									<p className="text-sm text-gray-600 dark:text-gray-400">
 										{getCategoryDescription(category.id)}
