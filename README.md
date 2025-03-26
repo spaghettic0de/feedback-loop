@@ -1,6 +1,6 @@
-# Cartesia - Technical Interview Preparation Assistant
+# Loopy - Technical Interview Preparation Assistant
 
-An open-source study assistance tool for software engineers preparing for technical interviews. Cartesia simulates realistic interview experiences with AI-driven questions and feedback.
+An open-source study assistance tool for software engineers preparing for technical interviews. Loopy simulates realistic interview experiences with AI-driven questions and feedback.
 
 ## Features
 
@@ -55,7 +55,7 @@ An open-source study assistance tool for software engineers preparing for techni
 
 ## Example Questions
 
-Cartesia includes questions covering topics such as:
+Loopy includes questions covering topics such as:
 
 - **System Design**: 
   - How would you handle 100,000,000,000 file updates?
@@ -105,7 +105,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the a
 
 ## Contributing
 
-Cartesia is an open-source project and we welcome contributions! Please feel free to submit a PR or open an issue if you have ideas for improvement.
+Loopy is an open-source project and we welcome contributions! Please feel free to submit a PR or open an issue if you have ideas for improvement.
 
 ## License
 

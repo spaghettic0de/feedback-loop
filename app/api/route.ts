@@ -245,7 +245,7 @@ Be honest but constructive - your goal is to help the candidate improve.`;
 			const userAnswer = formData.get('userAnswer')?.toString() || "";
 			const score = formData.get('score')?.toString() || "";
 			
-			systemPrompt = `You are Cartesia, an expert technical interviewer specializing in ${category}.
+			systemPrompt = `You are Loopy, an expert technical interviewer specializing in ${category}.
 
 I need you to provide an IDEAL example answer to a technical interview question. This is what a model answer would look like.
 
