@@ -18,11 +18,45 @@ import {
   InterviewState,
   ApiQuestionResponse,
   ApiQuestionResponseStructured,
-  CATEGORIES,
   Category,
   Difficulty,
   ProblemHistoryItem
 } from "@/lib/types";
+
+// Add the CATEGORY_SECTIONS definition from app/page.tsx
+// Define category sections with subsections
+const CATEGORY_SECTIONS = [
+  {
+    id: "core_cs",
+    name: "Computer Science Fundamentals",
+    categories: [
+      { id: "algorithms", name: "Algorithms & Data Structures" },
+      { id: "system_design", name: "System Design" },
+      { id: "networking", name: "Networking" },
+      { id: "os", name: "Operating Systems" },
+      { id: "concurrency", name: "Concurrency" },
+      { id: "databases", name: "Databases" },
+      { id: "web", name: "Web Development" },
+      { id: "devops", name: "DevOps" },
+      { id: "security", name: "Security" },
+    ]
+  },
+  {
+    id: "programming_languages",
+    name: "Programming Languages",
+    categories: [
+      { id: "python", name: "Python" },
+      { id: "javascript", name: "JavaScript" },
+      { id: "typescript", name: "TypeScript" },
+      { id: "cpp", name: "C++" },
+      { id: "csharp", name: "C#" },
+      { id: "go", name: "Go" },
+    ]
+  }
+];
+
+// Create a flattened array of all categories for easier lookup
+const FLATTENED_CATEGORIES = CATEGORY_SECTIONS.flatMap(section => section.categories);
 
 // Helper function to create form data from an object
 function createFormData(data: Record<string, any>): FormData {
@@ -49,6 +83,239 @@ function createFormData(data: Record<string, any>): FormData {
   
   return formData;
 }
+
+// Helper function to parse evaluation response
+function parseEvaluationResponse(evaluation: string): {
+  score: number;
+  strengths: string[];
+  improvements: string[];
+  missedPoints: string[];
+  followUp?: string;
+  idealResponse?: string;
+} {
+  // Initialize with empty values
+  const result = {
+    score: 0,
+    strengths: [] as string[],
+    improvements: [] as string[],
+    missedPoints: [] as string[],
+    followUp: '',
+    idealResponse: ''
+  };
+
+  // Extract score (looking for "Score: X" or "X/5" pattern)
+  const scoreMatch = evaluation.match(/Score:?\s*(\d+(?:\.\d+)?)/i) || 
+                    evaluation.match(/(\d+(?:\.\d+)?)\s*\/\s*5/i);
+  if (scoreMatch) {
+    result.score = parseFloat(scoreMatch[1]);
+  }
+
+  // Extract sections based on common headings
+  const sections: Record<string, RegExp> = {
+    strengths: /(?:Strengths|Strengths:)\s*([\s\S]*?)(?=Areas for Improvement|Improvements|Areas of Improvement|Key Points Missed|Missed Points|Follow-up|Ideal Response|$)/i,
+    improvements: /(?:Areas for Improvement|Improvements|Areas of Improvement):?\s*([\s\S]*?)(?=Key Points Missed|Missed Points|Follow-up|Ideal Response|$)/i,
+    missedPoints: /(?:Key Points Missed|Missed Points|Missed Opportunities|Key Points):?\s*([\s\S]*?)(?=Follow-up|Ideal Response|$)/i,
+    followUp: /(?:Follow-up Question|Follow-up):?\s*([\s\S]*?)(?=Ideal Response|$)/i,
+    idealResponse: /(?:Ideal Response|Example Answer|Model Answer):?\s*([\s\S]*?)(?=$)/i
+  };
+
+  // Extract each section
+  Object.entries(sections).forEach(([key, regex]) => {
+    const match = evaluation.match(regex);
+    if (match && match[1] && match[1].trim()) {
+      const content = match[1].trim();
+      
+      // For list sections, split into bullet points
+      if (['strengths', 'improvements', 'missedPoints'].includes(key)) {
+        // First clean up common markdown artifacts
+        const cleanedContent = content
+          // Remove any leading/trailing list artifacts
+          .replace(/^\s*[-•*]\s*/, '')
+          .trim();
+        
+        // Try different ways to split the content into bullet points
+        let points: string[] = [];
+        
+        // Method 1: Try to split by bullet points or numbered lists
+        const bulletMatch = cleanedContent.match(/(?:^|\n)[-•*]\s+(.+?)(?=(?:\n[-•*]|\n\d+\.|\n\n|$))/g);
+        const numberedMatch = cleanedContent.match(/(?:^|\n)\d+\.\s+(.+?)(?=(?:\n[-•*]|\n\d+\.|\n\n|$))/g);
+        
+        if (bulletMatch || numberedMatch) {
+          const matches = [...(bulletMatch || []), ...(numberedMatch || [])];
+          points = matches.map(point => 
+            point
+              .replace(/^[-•*]\s+/, '') // Remove bullet markers
+              .replace(/^\d+\.\s+/, '') // Remove numbers
+              .replace(/^\n+/, '') // Remove leading newlines
+              .trim()
+          );
+        } 
+        // Method 2: If no bullet points found, try splitting by newlines
+        else if (cleanedContent.includes('\n')) {
+          points = cleanedContent
+            .split('\n')
+            .map(point => point.trim().replace(/^[-•*]\s+/, '').replace(/^\d+\.\s+/, ''))
+            .filter(point => point.length > 0);
+        }
+        // Method 3: If still no structured points found, just use the whole content
+        else {
+          points = [cleanedContent];
+        }
+        
+        // Filter out empty or obviously incorrect points (like single asterisks or numbers)
+        points = points
+          .filter(point => point.length > 1) // Exclude very short items like "*" or "•"
+          .filter(point => !/^[-•*]$/.test(point)); // Exclude items that are just bullet characters
+        
+        if (points.length > 0) {
+          (result as any)[key] = points;
+        } else {
+          // If still no valid points found, use the whole content
+          (result as any)[key] = [cleanedContent.replace(/^[-•*]\s+/, '')];
+        }
+      } else if (key === 'followUp') {
+        // Clean up the follow-up question by removing asterisks and extra whitespace
+        let followUpText = content
+          .replace(/^\s*\*+\s*/, '')  // Remove leading asterisks
+          .replace(/\s*\*+\s*$/, '')  // Remove trailing asterisks
+          .trim();
+          
+        // Also remove any "###" markdown headers that might be present
+        followUpText = followUpText.replace(/^###\s+/, '');
+        
+        (result as any)[key] = followUpText;
+      } else if (key === 'idealResponse') {
+        // For ideal response, ensure code blocks are properly formatted
+        // Make sure triple backtick code blocks have language specifiers
+        let idealResponseText = content;
+        
+        // Detect code blocks without language specification and add 'python' as default
+        idealResponseText = idealResponseText.replace(/```\s*\n/g, '```python\n');
+        
+        // Clean up any bad formatting
+        idealResponseText = idealResponseText
+          .replace(/^```\s*$/gm, '```') // Handle lone backticks
+          .replace(/^`{1,2}(?!`)/gm, '') // Remove stray single or double backticks at line start
+          .replace(/(?<!\n)```/g, '\n```'); // Ensure backticks start on their own line
+        
+        (result as any)[key] = idealResponseText;
+      } else {
+        // For other non-list sections, just use the whole content
+        (result as any)[key] = content;
+      }
+    }
+  });
+
+  return result;
+}
+
+// Component to display the evaluation in a structured format
+const StructuredEvaluation = ({ evaluation }: { evaluation: string }) => {
+  const {
+    score,
+    strengths,
+    improvements,
+    missedPoints,
+    followUp,
+    idealResponse
+  } = parseEvaluationResponse(evaluation);
+
+  return (
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Evaluation Results</h3>
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+            <span className="text-3xl font-bold">{score}</span>
+            <span className="text-sm ml-0.5 mt-1">/5</span>
+          </div>
+        </div>
+        
+        {strengths.length > 0 && (
+          <div className="mb-4">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Strengths</h4>
+            <ul className="list-disc pl-5 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              {strengths.map((strength, i) => (
+                <li key={i} className="prose-sm dark:prose-invert">
+                  <ReactMarkdown
+                    components={MarkdownComponents}
+                    rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
+                  >
+                    {strength}
+                  </ReactMarkdown>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        {improvements.length > 0 && (
+          <div className="mb-4">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Areas for Improvement</h4>
+            <ul className="list-disc pl-5 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              {improvements.map((improvement, i) => (
+                <li key={i} className="prose-sm dark:prose-invert">
+                  <ReactMarkdown
+                    components={MarkdownComponents}
+                    rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
+                  >
+                    {improvement}
+                  </ReactMarkdown>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        {missedPoints.length > 0 && (
+          <div className="mb-4">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Key Points Missed</h4>
+            <ul className="list-disc pl-5 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              {missedPoints.map((point, i) => (
+                <li key={i} className="prose-sm dark:prose-invert">
+                  <ReactMarkdown
+                    components={MarkdownComponents}
+                    rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
+                  >
+                    {point}
+                  </ReactMarkdown>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        {followUp && (
+          <div className="mb-4">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Follow-up Question</h4>
+            <div className="text-sm text-gray-600 dark:text-gray-400 prose dark:prose-invert prose-sm">
+              <ReactMarkdown
+                components={MarkdownComponents}
+                rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
+              >
+                {followUp}
+              </ReactMarkdown>
+            </div>
+          </div>
+        )}
+        
+        {idealResponse && (
+          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ideal Response Example</h4>
+            <div className="text-sm text-gray-600 dark:text-gray-400 prose dark:prose-invert prose-sm max-w-none">
+              <ReactMarkdown
+                components={MarkdownComponents}
+                rehypePlugins={[rehypeRaw, rehypeSanitize, [rehypeHighlight, { ignoreMissing: true }]]}
+              >
+                {idealResponse}
+              </ReactMarkdown>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default function ProblemPage() {
   const params = useParams<{ id: string }>();
@@ -129,7 +396,7 @@ export default function ProblemPage() {
       const historyItem = {
         id: params.id,
         title: state.currentQuestion.slice(0, 50) + (state.currentQuestion.length > 50 ? '...' : ''),
-        category: CATEGORIES.find(c => c.id === state.category)?.name || 'Unknown',
+        category: FLATTENED_CATEGORIES.find(c => c.id === state.category)?.name || 'Unknown',
         date: new Date().toLocaleDateString(),
         status: state.messages.length > 1 ? 'completed' : 'in-progress'
       };
@@ -592,6 +859,50 @@ export default function ProblemPage() {
     });
   };
 
+  // Get category name by id
+  function getCategoryName(categoryId: string): string {
+    const category = FLATTENED_CATEGORIES.find(c => c.id === categoryId);
+    return category?.name || '';
+  }
+
+  // CategorySelection component
+  function CategorySelection({ onSelectCategory }: { onSelectCategory: (categoryId: string) => void }) {
+    return (
+      <div className="max-w-3xl mx-auto">
+        <h2 className="text-3xl font-medium text-gray-900 dark:text-white mb-3">
+          Select a Category
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
+          Choose a topic for your technical interview practice:
+        </p>
+        
+        {CATEGORY_SECTIONS.map((section) => (
+          <div key={section.id} className="mb-8">
+            <h3 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-4">
+              {section.name}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {section.categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => onSelectCategory(category.id)}
+                  className="group p-5 bg-gray-50 dark:bg-gray-900 rounded-xl hover:shadow-md transition-all duration-200 text-left"
+                >
+                  <h4 className="font-medium text-lg text-gray-900 dark:text-white mb-2">
+                    {category.name}
+                  </h4>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {getCategoryDescription(category.id)}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   // Render category selection when not active
   if (!state.isActive) {
     return (
@@ -600,30 +911,33 @@ export default function ProblemPage() {
           <h2 className="text-3xl font-medium text-gray-900 dark:text-white mb-3">
             Select a Category
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-lg mb-8">
+          <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
             Choose a topic for your technical interview practice:
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {CATEGORIES.map((category) => {
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => startInterview(category.id)}
-                  className="group p-5 bg-gray-50 dark:bg-gray-900 rounded-xl hover:shadow-md transition-all duration-200 text-left"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-medium text-lg text-gray-900 dark:text-white">
+          {CATEGORY_SECTIONS.map((section) => (
+            <div key={section.id} className="mb-8">
+              <h3 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-4">
+                {section.name}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {section.categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => startInterview(category.id)}
+                    className="group p-5 bg-gray-50 dark:bg-gray-900 rounded-xl hover:shadow-md transition-all duration-200 text-left"
+                  >
+                    <h4 className="font-medium text-lg text-gray-900 dark:text-white mb-2">
                       {category.name}
-                    </h3>
-                  </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {getCategoryDescription(category.id)}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
+                    </h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {getCategoryDescription(category.id)}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -636,7 +950,7 @@ export default function ProblemPage() {
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-3">
-              {CATEGORIES.find((c: any) => c.id === state.category)?.name || "Interview"}
+              {FLATTENED_CATEGORIES.find((c) => c.id === state.category)?.name || "Interview"}
             </h2>
             {state.difficulty && (
               <DifficultyBadge difficulty={state.difficulty} />
@@ -691,116 +1005,159 @@ export default function ProblemPage() {
         </div>
       </header>
       
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto p-6">
-          {/* Messages */}
-          <div className="space-y-6 mb-6">
-            {state.messages.map((message, index) => (
-              <div 
-                key={index} 
-                className={`flex ${message.role === "assistant" ? "justify-start" : "justify-end"}`}
-              >
-                <div 
-                  className={`rounded-lg p-4 max-w-[85%] ${
-                    message.role === "assistant" 
-                      ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100" 
-                      : "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100"
-                  }`}
-                >
+      <main className="flex-1 overflow-y-auto p-6">
+        {state.isActive ? (
+          <div className="max-w-3xl mx-auto">
+            {/* Category and difficulty header */}
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-semibold">
+                {getCategoryName(state.category || '') || "Interview"}
+              </h1>
+              {state.difficulty && (
+                <DifficultyBadge difficulty={state.difficulty} />
+              )}
+            </div>
+            
+            {/* Question display first - with Interviewer label */}
+            {state.currentQuestion && (
+              <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-4 mb-4 border border-gray-200 dark:border-gray-800">
+                <div className="mb-2 text-sm font-medium">
+                  Interviewer
+                </div>
+                <div className="prose dark:prose-invert max-w-none">
                   <ReactMarkdown
-                    rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
                     components={MarkdownComponents}
+                    rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
                   >
-                    {message.content}
+                    {state.currentQuestion}
                   </ReactMarkdown>
                 </div>
+                
+                {/* Hints section right after the question */}
+                {state.hints.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    {state.hints.map((hint, index) => (
+                      <div key={index} className="bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden">
+                        <button
+                          onClick={() => toggleHintVisibility(index)}
+                          className="w-full px-4 py-2 text-left flex justify-between items-center text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+                        >
+                          <span className="font-medium">Hint {index + 1}</span>
+                          <span>
+                            {hint.visible ? (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                              </svg>
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            )}
+                          </span>
+                        </button>
+                        {hint.visible && (
+                          <div className="px-4 pb-3 prose-sm dark:prose-invert prose-gray max-w-none">
+                            <ReactMarkdown
+                              components={MarkdownComponents}
+                              rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
+                            >
+                              {hint.text}
+                            </ReactMarkdown>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-          
-          {/* Updated Hints section */}
-          {state.hints.length > 0 && (
-            <div className="mt-4 space-y-2">
-              {state.hints.map((hint, index) => (
-                <div key={index} className="bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => toggleHintVisibility(index)}
-                    className="flex justify-between items-center w-full p-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                  >
-                    <span>Hint {index + 1}</span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={`h-4 w-4 transition-transform duration-200 ${hint.visible ? 'transform rotate-180' : ''}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+            )}
+
+            {/* Messages - skip the first message which is the question */}
+            {state.messages.length > 1 && (
+              <div className="space-y-6 mb-6">
+                {state.messages.slice(1).map((message, index) => {
+                  // Add 1 to index since we're using slice(1)
+                  const actualIndex = index + 1;
+                  
+                  // Check if this is an evaluation message from the assistant
+                  const isEvaluation = message.role === "assistant" && 
+                                     actualIndex > 0 && 
+                                     state.messages[actualIndex - 1].role === "user";
+                  
+                  return (
+                    <div 
+                      key={actualIndex} 
+                      className={`p-4 rounded-lg ${
+                        message.role === "user"
+                          ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900"
+                          : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800"
+                      }`}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {hint.visible && (
-                    <div className="p-3 pt-0 text-sm text-gray-600 dark:text-gray-400 prose-sm prose-gray">
-                      <ReactMarkdown
-                        rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
-                        components={MarkdownComponents}
-                      >
-                        {hint.text}
-                      </ReactMarkdown>
+                      <div className="mb-2 text-sm font-medium">
+                        {message.role === "user" ? "You" : "Interviewer"}
+                      </div>
+                      
+                      {/* Render structured evaluation or regular markdown */}
+                      {isEvaluation ? (
+                        <StructuredEvaluation evaluation={message.content} />
+                      ) : (
+                        <div className="prose dark:prose-invert max-w-none">
+                          <ReactMarkdown
+                            components={MarkdownComponents}
+                            rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Input area */}
+            {state.currentStep === "input" && (
+              <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4">
+                <div className="mb-4">
+                  <Textarea
+                    placeholder="Type your answer..."
+                    value={state.textInput}
+                    onChange={handleTextInputChange}
+                    className="w-full h-32 resize-none"
+                  />
                 </div>
-              ))}
-            </div>
-          )}
-          
-          {/* Input area */}
-          {state.currentStep === "input" && (
-            <div className="mt-6">
-              <div className="relative">
-                <Textarea
-                  value={state.textInput}
-                  onChange={handleTextInputChange}
-                  placeholder="Type your answer here..."
-                  className="w-full p-3 min-h-[120px] border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 pr-12"
-                  rows={3}
-                />
-                <Button
-                  onClick={submitTextAnswer}
-                  disabled={!state.textInput.trim() || state.isLoading}
-                  className="absolute right-2 bottom-2 p-2"
-                  size="icon"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                  </svg>
+                <div className="flex justify-end">
+                  <Button onClick={submitTextAnswer}>
+                    Submit Answer
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            {/* Actions section */}
+            {state.currentStep === "idle" && (
+              <div className="flex justify-center mt-6">
+                <Button onClick={askNewQuestion}>
+                  Ask New Question
                 </Button>
               </div>
-            </div>
-          )}
-          
-          {/* "Ask New Question" button */}
-          {state.currentStep === "idle" && (
-            <div className="mt-6">
-              <Button
-                onClick={askNewQuestion}
-                disabled={state.isLoading}
-                className="w-full"
-              >
-                Ask New Question
-              </Button>
-            </div>
-          )}
-          
-          {/* Loading indicator */}
-          {state.isLoading && (
-            <div className="flex justify-center mt-6">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
-            </div>
-          )}
-        </div>
-      </div>
+            )}
+            
+            {/* Loading indicator */}
+            {state.isLoading && (
+              <div className="flex justify-center my-8">
+                <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4 flex items-center space-x-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 dark:border-blue-400"></div>
+                  <div className="text-blue-700 dark:text-blue-300 text-sm">Processing...</div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <CategorySelection onSelectCategory={startInterview} />
+        )}
+      </main>
     </div>
   );
 }
@@ -822,11 +1179,12 @@ function getCategoryDescription(id: string): string {
   return descriptions[id] || "Practice technical interview questions";
 }
 
-// Add proper function implementations
+// Update the evaluateAnswer function
 async function evaluateAnswer(category: string, messages: Message[]): Promise<string | null> {
   console.log("Evaluating answer for category:", category);
   
   try {
+    // Request evaluation
     const formData = createFormData({
       category,
       requestType: "evaluate",
@@ -853,6 +1211,45 @@ async function evaluateAnswer(category: string, messages: Message[]): Promise<st
     
     if (data.error) {
       throw new Error(data.error);
+    }
+    
+    if (!data.response) {
+      throw new Error("Empty response from evaluation API");
+    }
+    
+    // Parse the evaluation to check if it has an ideal response
+    const parsedEval = parseEvaluationResponse(data.response);
+    
+    // If no ideal response is found, we might want to request one separately
+    if (!parsedEval.idealResponse && parsedEval.score > 0) {
+      console.log("No ideal response found in evaluation, will generate one");
+      
+      try {
+        // We'll add an additional request to get an ideal answer example
+        const idealFormData = createFormData({
+          category,
+          requestType: "idealAnswer",
+          // Include the original question from the most recent assistant's message
+          originalQuestion: messages.find(m => m.role === "assistant")?.content || "",
+          // Include the user's answer for context
+          userAnswer: messages.find(m => m.role === "user")?.content || "",
+          // Include score for context
+          score: parsedEval.score
+        });
+        
+        const idealResponse = await fetch("/api", {
+          method: "POST",
+          body: idealFormData,
+        }).then(res => res.json());
+        
+        if (idealResponse && idealResponse.response) {
+          // Append the ideal response to our evaluation
+          return data.response + "\n\n### Ideal Response\n" + idealResponse.response;
+        }
+      } catch (idealError) {
+        console.error("Error getting ideal response:", idealError);
+        // Continue with the original evaluation if we fail to get an ideal response
+      }
     }
     
     return data.response;

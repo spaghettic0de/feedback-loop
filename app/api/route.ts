@@ -20,9 +20,12 @@ const schema = zfd.formData({
 		)
 		.optional()
 		.default([]),
-	requestType: z.enum(["question", "evaluate", "audio"]).optional().default("question"),
+	requestType: z.enum(["question", "evaluate", "audio", "idealAnswer"]).optional().default("question"),
 	audioData: zfd.file().optional(),
 	generateAudio: zfd.text().optional().default("false"),
+	originalQuestion: zfd.text().optional(),
+	userAnswer: zfd.text().optional(),
+	score: zfd.text().optional(),
 });
 
 export async function POST(request: Request) {
@@ -233,6 +236,45 @@ FORMATTING REQUIREMENTS:
 - Do not format regular text or sentences with backticks
 
 Be honest but constructive - your goal is to help the candidate improve.`;
+		}
+		else if (requestType === "idealAnswer") {
+			console.log("Generating ideal answer example prompt");
+			
+			// Extract additional context if available
+			const originalQuestion = formData.get('originalQuestion')?.toString() || "";
+			const userAnswer = formData.get('userAnswer')?.toString() || "";
+			const score = formData.get('score')?.toString() || "";
+			
+			systemPrompt = `You are Cartesia, an expert technical interviewer specializing in ${category}.
+
+I need you to provide an IDEAL example answer to a technical interview question. This is what a model answer would look like.
+
+The question was: "${originalQuestion}"
+
+The candidate's answer received a score of ${score}/5.
+
+The ideal answer should:
+1. Be concise but comprehensive (something that could be delivered in 1-2 minutes verbally)
+2. Demonstrate strong technical knowledge and understanding
+3. Include key concepts and terminology
+4. Be well-structured and easy to follow
+5. NOT be overly detailed or exhaustive - focus on the core concepts
+
+FORMATTING REQUIREMENTS:
+- Use proper markdown formatting in your response
+- Always use single backticks for:
+  - All code elements: \`variable_name\`, \`function()\`, \`SELECT\`
+  - All technical values: \`192.168.1.1\`, \`64\`, \`443\`, \`8080\`
+  - All database elements: \`users\` table, \`id\` column
+  - Any technical terms or keywords
+- Only use triple backticks for multi-line code blocks with a language specified:
+  \`\`\`sql
+  SELECT * FROM users WHERE id = 1;
+  \`\`\`
+- Use markdown formatting appropriately but not excessively
+- Keep the response direct and to-the-point
+
+Provide ONLY the ideal answer, without any additional commentary, explanations, or sections.`;
 		}
 		else {
 			// Default case: generate a question

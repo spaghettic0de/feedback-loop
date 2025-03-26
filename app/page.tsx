@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CATEGORIES } from "@/lib/types";
 
 // Define custom components for ReactMarkdown
 const MarkdownComponents = {
@@ -173,21 +172,6 @@ function createFormData(data: Record<string, any>): FormData {
 	
 	return formData;
 }
-
-// Difficulty badge component
-const DifficultyBadge = ({ difficulty }: { difficulty: "easy" | "medium" | "hard" }) => {
-	const colors = {
-		easy: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-		medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-		hard: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-	};
-	
-	return (
-		<span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[difficulty]}`}>
-			{difficulty}
-		</span>
-	);
-};
 
 export default function Home() {
 	const [state, setState] = useState<InterviewState>({
@@ -1338,49 +1322,91 @@ export default function Home() {
 
 	return (
 		<div className="min-h-screen bg-white dark:bg-gray-950">
-			<main className="max-w-6xl mx-auto px-6 py-12">
+			<main className="max-w-6xl mx-auto px-6 py-16">
 				<div className="text-center mb-12">
 					<h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
 						feedback.loop
 					</h1>
 					<p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-						Prepare for technical interviews with AI-powered practice questions and feedback
+						Prepare for technical interviews with AI-powered practice questions and real-time feedback
 					</p>
-					<div className="mt-8">
+					<div className="mt-10">
 						<Button 
 							onClick={startNewInterview}
 							size="lg"
-							className="px-8"
+							className="px-8 py-6 text-lg"
 						>
 							Start New Practice
 						</Button>
 					</div>
 				</div>
 				
-				<div className="mt-16">
-					<h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
-						Practice by Category
-					</h2>
+				<div className="mt-20 max-w-4xl mx-auto">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+						<div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl">
+							<div className="flex items-center justify-center h-14 w-14 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 mb-4 mx-auto">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+									<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+									<polyline points="14 2 14 8 20 8" />
+									<path d="M8 13h4" />
+									<path d="M8 17h8" />
+									<path d="M8 9h1" />
+								</svg>
+							</div>
+							<h3 className="text-lg font-medium text-center text-gray-900 dark:text-white mb-2">
+								Practice Questions
+							</h3>
+							<p className="text-sm text-center text-gray-600 dark:text-gray-400">
+								Access a broad range of technical interview questions covering algorithms, system design, and more
+							</p>
+						</div>
+						
+						<div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl">
+							<div className="flex items-center justify-center h-14 w-14 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 mb-4 mx-auto">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+									<path d="M3 3v18h18" />
+									<path d="m19 9-5 5-4-4-3 3" />
+								</svg>
+							</div>
+							<h3 className="text-lg font-medium text-center text-gray-900 dark:text-white mb-2">
+								Detailed Feedback
+							</h3>
+							<p className="text-sm text-center text-gray-600 dark:text-gray-400">
+								Receive personalized feedback on your answers to improve your problem-solving skills
+							</p>
+						</div>
+						
+						<div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl">
+							<div className="flex items-center justify-center h-14 w-14 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 mb-4 mx-auto">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+									<path d="M12 8a2 2 0 0 1 2 2v4a2 2 0 1 1-4 0v-4a2 2 0 0 1 2-2z" />
+									<rect width="16" height="16" x="4" y="4" rx="2" ry="2" />
+								</svg>
+							</div>
+							<h3 className="text-lg font-medium text-center text-gray-900 dark:text-white mb-2">
+								Voice & Text Support
+							</h3>
+							<p className="text-sm text-center text-gray-600 dark:text-gray-400">
+								Practice in the format that suits you best with both voice and text input options
+							</p>
+						</div>
+					</div>
 					
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{CATEGORIES.map((category) => {
-							return (
-								<Link 
-									href={`/problems/${crypto.randomUUID()}?category=${category.id}`}
-									key={category.id}
-									className="block group p-6 bg-gray-50 dark:bg-gray-900 rounded-xl hover:shadow-md transition-all duration-200"
-								>
-									<div className="flex justify-between items-start mb-3">
-										<h3 className="font-medium text-lg text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-											{category.name}
-										</h3>
-									</div>
-									<p className="text-sm text-gray-600 dark:text-gray-400">
-										{getCategoryDescription(category.id)}
-									</p>
-								</Link>
-							);
-						})}
+					<div className="mt-16 text-center">
+						<h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+							Ready to ace your next interview?
+						</h2>
+						<p className="text-gray-600 dark:text-gray-400 mb-8">
+							Start practicing with AI-powered feedback to build confidence and technical skills
+						</p>
+						<Button 
+							onClick={startNewInterview}
+							variant="outline"
+							size="lg"
+							className="px-6"
+						>
+							Get Started Now
+						</Button>
 					</div>
 				</div>
 			</main>
@@ -1391,6 +1417,7 @@ export default function Home() {
 // Helper function to get descriptions for each category
 function getCategoryDescription(id: string): string {
 	const descriptions: Record<string, string> = {
+		// Core CS
 		"algorithms": "Practice sorting, searching, and optimization algorithms",
 		"system_design": "Design scalable systems and architectures",
 		"networking": "Understand protocols, APIs, and network architecture",
@@ -1399,7 +1426,26 @@ function getCategoryDescription(id: string): string {
 		"concurrency": "Master multithreading, parallelism, and race conditions",
 		"web": "Cover HTTP, RESTful design, and web architecture",
 		"devops": "Learn CI/CD, containers, and infrastructure as code",
-		"security": "Practice authentication, encryption, and secure design"
+		"security": "Practice authentication, encryption, and secure design",
+		
+		// Programming Languages
+		"python": "Master Python syntax, libraries, and best practices",
+		"javascript": "Practice JavaScript concepts, DOM manipulation, and async programming",
+		"typescript": "Explore TypeScript types, interfaces, and advanced features",
+		"java": "Work with Java OOP, collections, and concurrency",
+		"cpp": "Tackle C++ memory management, STL, and optimization",
+		"csharp": "Practice C# .NET framework, LINQ, and async patterns",
+		"go": "Master Go concurrency, error handling, and interfaces",
+		"rust": "Explore Rust ownership, borrowing, and safe concurrency",
+		"sql": "Write complex queries, optimize database performance",
+		
+		// Machine Learning
+		"ml_fundamentals": "Cover regression, classification, and core ML concepts",
+		"deep_learning": "Practice neural networks, backpropagation, and optimization",
+		"llms": "Explore large language models, transformers, and fine-tuning",
+		"computer_vision": "Work with image processing, CNNs, and object detection",
+		"nlp": "Master text processing, embeddings, and language understanding",
+		"ml_ops": "Learn ML pipelines, deployment, and monitoring",
 	};
 	
 	return descriptions[id] || "Practice technical interview questions";
