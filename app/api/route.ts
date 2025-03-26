@@ -210,7 +210,7 @@ export async function POST(request: Request) {
 		
 		if (requestType === "evaluate") {
 			console.log("Generating evaluation prompt");
-			systemPrompt = `You are Cartesia, an expert technical interviewer specializing in ${category}.
+			systemPrompt = `You are Loopy, an expert technical interviewer specializing in ${category}.
 			
 You're evaluating a candidate's answer to a technical interview question.
 Based on their response:
@@ -279,7 +279,7 @@ Provide ONLY the ideal answer, without any additional commentary, explanations, 
 		else {
 			// Default case: generate a question
 			console.log("Generating question prompt");
-			systemPrompt = `You are Cartesia, a technical interviewer specializing in ${category}.
+			systemPrompt = `You are Loopy, a technical interviewer specializing in ${category}.
 			
 Generate a realistic interview question about ${category} that would be asked in a technical interview, along with three progressive hints and a difficulty rating.
 
