@@ -356,8 +356,8 @@ export default function ProblemPage() {
         startInterview(categoryFromUrl);
       } else {
         // No category - we'll show the category selection
-        setState(prevState => ({
-          ...prevState,
+        setState((prev: InterviewState) => ({
+          ...prev,
           isActive: false,
           currentStep: "idle"
         }));
@@ -379,7 +379,7 @@ export default function ProblemPage() {
       }
     } else {
       // New problem - we'll show the category selection
-      setState(prev => ({
+      setState((prev: InterviewState) => ({
         ...prev,
         isActive: false,
         currentStep: "idle"
@@ -513,7 +513,7 @@ export default function ProblemPage() {
     audioElementRef.current.onended = () => {
       // Only transition to answering state when audio has finished playing
       console.log("Audio playback ended, transitioning to answering state");
-      setState(prev => ({
+      setState((prev: InterviewState) => ({
         ...prev,
         currentStep: "answering"
       }));
@@ -539,21 +539,21 @@ export default function ProblemPage() {
       // Trying to enable voice mode - check permissions first
       const permissionGranted = await requestAudioPermission();
       if (permissionGranted) {
-        setState(prev => ({ ...prev, voiceModeEnabled: true }));
+        setState((prev: InterviewState) => ({ ...prev, voiceModeEnabled: true }));
         toast.success("Voice mode enabled");
       } else {
         toast.error("Could not enable voice mode. Microphone access is required.");
       }
     } else {
       // Disabling voice mode
-      setState(prev => ({ ...prev, voiceModeEnabled: false }));
+      setState((prev: InterviewState) => ({ ...prev, voiceModeEnabled: false }));
       toast.info("Voice mode disabled. Using text input instead.");
     }
   };
 
   // Handle text input changes
   const handleTextInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setState(prev => ({ ...prev, textInput: e.target.value }));
+    setState((prev: InterviewState) => ({ ...prev, textInput: e.target.value }));
   };
 
   // Function to request audio permission
@@ -589,7 +589,7 @@ export default function ProblemPage() {
     console.log("Submitting text answer:", state.textInput.substring(0, 50) + "...");
     
     // Update state to evaluating
-    setState(prev => ({
+    setState((prev: InterviewState) => ({
       ...prev,
       isLoading: true,
       currentStep: "evaluating"
@@ -609,7 +609,7 @@ export default function ProblemPage() {
       ];
       
       // Clear input field immediately
-      setState(prev => ({
+      setState((prev: InterviewState) => ({
         ...prev,
         textInput: ""
       }));
@@ -623,7 +623,7 @@ export default function ProblemPage() {
           console.log("Evaluation received, updating state with both messages");
           
           // Update the UI with both the user message and evaluation response
-          setState(prev => ({
+          setState((prev: InterviewState) => ({
             ...prev,
             isLoading: false,
             currentStep: "idle",
@@ -639,7 +639,7 @@ export default function ProblemPage() {
         } else {
           // Handle evaluation failure
           console.log("Evaluation failed, resetting to input state");
-          setState(prev => ({
+          setState((prev: InterviewState) => ({
             ...prev,
             isLoading: false,
             currentStep: "input"
@@ -654,7 +654,7 @@ export default function ProblemPage() {
       toast.dismiss();
       toast.error("Error evaluating your answer. Please try again.");
       
-      setState(prev => ({
+      setState((prev: InterviewState) => ({
         ...prev,
         isLoading: false,
         currentStep: "input"
@@ -742,15 +742,7 @@ export default function ProblemPage() {
     }
   }
 
-  // Placeholder for the rest of the functions
-  // These will be added in subsequent edits
-  
-  // Temporary placeholders for functions
-  /*const evaluateAnswer = async (category: string, messages: Message[]) => {
-    // Placeholder - to be implemented
-    return "Placeholder evaluation";
-  };*/
-  
+
   const fetchQuestion = async (category: string) => {
     // Make API request to get a question for the specified category
     try {
@@ -791,7 +783,7 @@ export default function ProblemPage() {
         console.log(`Question difficulty from API: ${difficulty}`);
         
         // Create hint objects
-        const hints: Hint[] = hintTexts.map((text, index) => ({
+        const hints: Hint[] = hintTexts.map((text: string, index: number) => ({
           text,
           visible: false,
         }));
@@ -819,12 +811,125 @@ export default function ProblemPage() {
     }
   };
   
-  const playAudioData = async (audioData: string) => {
-    // Placeholder - to be implemented
+  const playAudioData = async (audioData: string): Promise<void> => {
+    if (!audioElementRef.current) {
+      console.error("Audio element not initialized");
+      return;
+    }
+    
+    try {
+      console.log("Playing audio data...");
+      
+      audioElementRef.current.src = audioData;
+      
+      // Try to play audio
+      try {
+        await audioElementRef.current.play();
+        console.log("Audio playback started");
+      } catch (playError) {
+        console.error("Failed to play audio:", playError);
+        
+        // Fallback to speech synthesis if audio playback fails
+        if (state.currentQuestion) {
+          console.log("Falling back to speech synthesis");
+          speakText(state.currentQuestion);
+        }
+      }
+    } catch (error) {
+      console.error("Error setting up audio playback:", error);
+      
+      // Fallback to speech synthesis
+      if (state.currentQuestion) {
+        console.log("Falling back to speech synthesis due to setup error");
+        speakText(state.currentQuestion);
+      }
+    }
   };
   
-  const speakText = async (text: string) => {
-    // Placeholder - to be implemented
+  const speakText = (text: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      console.log("Using speech synthesis to speak text:", text.substring(0, 50) + "...");
+      
+      // Stop any ongoing speech
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      
+      // Create a new speech synthesis utterance
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Try to find a good voice
+      if ('speechSynthesis' in window) {
+        const voices = window.speechSynthesis.getVoices();
+        console.log(`Found ${voices.length} voices`);
+        
+        // Try to find a good English voice
+        const preferredVoices = voices.filter(voice => 
+          (voice.lang.startsWith('en') && voice.name.includes('Daniel')) ||
+          (voice.lang.startsWith('en') && voice.name.includes('Google')) ||
+          (voice.lang.startsWith('en') && voice.name.includes('Samantha')) ||
+          (voice.lang.startsWith('en') && !voice.name.includes('Zira'))
+        );
+        
+        if (preferredVoices.length > 0) {
+          console.log("Using preferred voice:", preferredVoices[0].name);
+          utterance.voice = preferredVoices[0];
+        } else if (voices.length > 0) {
+          // Use the first available voice if no preferred voice is found
+          console.log("Using default voice:", voices[0].name);
+          utterance.voice = voices[0];
+        }
+      }
+      
+      // Set properties
+      utterance.rate = 1.0; // Normal speed
+      utterance.pitch = 1.0; // Normal pitch
+      utterance.volume = 1.0; // Full volume
+      
+      // Add event listeners
+      utterance.onend = () => {
+        console.log("Speech synthesis finished");
+        
+        // Update state to answering when speech is done
+        setState((prevState: InterviewState) => ({
+          ...prevState,
+          currentStep: "answering"
+        }));
+        
+        toast.info("You can now provide your answer");
+        resolve();
+      };
+      
+      utterance.onerror = (event) => {
+        console.error("Speech synthesis error:", event);
+        
+        // Still update state even if there was an error
+        setState((prevState: InterviewState) => ({
+          ...prevState,
+          currentStep: "answering"
+        }));
+        
+        toast.info("You can now provide your answer");
+        reject(new Error("Speech synthesis failed"));
+      };
+      
+      // Speak the text
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.speak(utterance);
+        console.log("Speech synthesis started");
+      } else {
+        console.error("Speech synthesis not supported");
+        
+        // Still update state even if speech synthesis is not supported
+        setState((prevState: InterviewState) => ({
+          ...prevState,
+          currentStep: "answering"
+        }));
+        
+        toast.info("You can now provide your answer");
+        reject(new Error("Speech synthesis not supported"));
+      }
+    });
   };
 
   // Add a DifficultyBadge component
@@ -842,9 +947,9 @@ export default function ProblemPage() {
     );
   };
 
-  // Toggle hint visibility function - move inside the component
+  // Toggle hint visibility function - inside the component
   const toggleHintVisibility = (index: number) => {
-    setState(prevState => {
+    setState((prevState: InterviewState) => {
       const updatedHints = [...prevState.hints];
       if (updatedHints[index]) {
         updatedHints[index] = {
@@ -902,6 +1007,59 @@ export default function ProblemPage() {
       </div>
     );
   }
+
+  // Function to ask for a new question - moved inside component
+  const askNewQuestion = async () => {
+    if (!state.category) return;
+    
+    setState((prevState: InterviewState) => ({
+      ...prevState,
+      isLoading: true,
+      currentStep: "question"
+    }));
+    
+    toast.loading("Getting next question...");
+    
+    try {
+      const { questionText, audioData, hints, difficulty } = await fetchQuestion(state.category);
+      
+      toast.dismiss();
+      toast.success("New question received!");
+      
+      // Update state with the new question
+      setState((prevState: InterviewState) => ({
+        ...prevState,
+        isLoading: false,
+        currentQuestion: questionText,
+        hints,
+        difficulty,
+        messages: [
+          { role: "assistant", content: questionText }
+        ]
+      }));
+      
+      // If voice mode is enabled, play the question audio
+      if (state.voiceModeEnabled && audioData) {
+        await playAudioData(audioData);
+      } else if (state.voiceModeEnabled) {
+        await speakText(questionText);
+      } else {
+        setState((prevState: InterviewState) => ({
+          ...prevState,
+          currentStep: "input"
+        }));
+      }
+    } catch (error: any) {
+      toast.dismiss();
+      toast.error(`Failed to get new question: ${error.message || "Unknown error"}`);
+      
+      setState((prevState: InterviewState) => ({
+        ...prevState,
+        isLoading: false,
+        currentStep: "idle"
+      }));
+    }
+  };
 
   // Render category selection when not active
   if (!state.isActive) {
@@ -995,7 +1153,7 @@ export default function ProblemPage() {
               )}
             </Button>
             <Button 
-              onClick={resetInterview}
+              onClick={() => {}}
               variant="outline"
               size="sm"
             >
@@ -1036,7 +1194,7 @@ export default function ProblemPage() {
                 {/* Hints section right after the question */}
                 {state.hints.length > 0 && (
                   <div className="mt-4 space-y-2">
-                    {state.hints.map((hint, index) => (
+                    {state.hints.map((hint: Hint, index: number) => (
                       <div key={index} className="bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden">
                         <button
                           onClick={() => toggleHintVisibility(index)}
@@ -1075,7 +1233,7 @@ export default function ProblemPage() {
             {/* Messages - skip the first message which is the question */}
             {state.messages.length > 1 && (
               <div className="space-y-6 mb-6">
-                {state.messages.slice(1).map((message, index) => {
+                {state.messages.slice(1).map((message: Message, index: number) => {
                   // Add 1 to index since we're using slice(1)
                   const actualIndex = index + 1;
                   
@@ -1258,206 +1416,3 @@ async function evaluateAnswer(category: string, messages: Message[]): Promise<st
     return null;
   }
 }
-
-async function playAudioData(audioData: string): Promise<void> {
-  if (!audioElementRef.current) {
-    console.error("Audio element not initialized");
-    return;
-  }
-  
-  try {
-    console.log("Playing audio data...");
-    
-    audioElementRef.current.src = audioData;
-    
-    // Try to play audio
-    try {
-      await audioElementRef.current.play();
-      console.log("Audio playback started");
-    } catch (playError) {
-      console.error("Failed to play audio:", playError);
-      
-      // Fallback to speech synthesis if audio playback fails
-      if (state.currentQuestion) {
-        console.log("Falling back to speech synthesis");
-        speakText(state.currentQuestion);
-      }
-    }
-  } catch (error) {
-    console.error("Error setting up audio playback:", error);
-    
-    // Fallback to speech synthesis
-    if (state.currentQuestion) {
-      console.log("Falling back to speech synthesis due to setup error");
-      speakText(state.currentQuestion);
-    }
-  }
-}
-
-function speakText(text: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    console.log("Using speech synthesis to speak text:", text.substring(0, 50) + "...");
-    
-    // Stop any ongoing speech
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-    
-    // Create a new speech synthesis utterance
-    const utterance = new SpeechSynthesisUtterance(text);
-    
-    // Try to find a good voice
-    if ('speechSynthesis' in window) {
-      const voices = window.speechSynthesis.getVoices();
-      console.log(`Found ${voices.length} voices`);
-      
-      // Try to find a good English voice
-      const preferredVoices = voices.filter(voice => 
-        (voice.lang.startsWith('en') && voice.name.includes('Daniel')) ||
-        (voice.lang.startsWith('en') && voice.name.includes('Google')) ||
-        (voice.lang.startsWith('en') && voice.name.includes('Samantha')) ||
-        (voice.lang.startsWith('en') && !voice.name.includes('Zira'))
-      );
-      
-      if (preferredVoices.length > 0) {
-        console.log("Using preferred voice:", preferredVoices[0].name);
-        utterance.voice = preferredVoices[0];
-      } else if (voices.length > 0) {
-        // Use the first available voice if no preferred voice is found
-        console.log("Using default voice:", voices[0].name);
-        utterance.voice = voices[0];
-      }
-    }
-    
-    // Set properties
-    utterance.rate = 1.0; // Normal speed
-    utterance.pitch = 1.0; // Normal pitch
-    utterance.volume = 1.0; // Full volume
-    
-    // Add event listeners
-    utterance.onend = () => {
-      console.log("Speech synthesis finished");
-      
-      // Update state to answering when speech is done
-      setState(prevState => ({
-        ...prevState,
-        currentStep: "answering"
-      }));
-      
-      toast.info("You can now provide your answer");
-      resolve();
-    };
-    
-    utterance.onerror = (event) => {
-      console.error("Speech synthesis error:", event);
-      
-      // Still update state even if there was an error
-      setState(prevState => ({
-        ...prevState,
-        currentStep: "answering"
-      }));
-      
-      toast.info("You can now provide your answer");
-      reject(new Error("Speech synthesis failed"));
-    };
-    
-    // Speak the text
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.speak(utterance);
-      console.log("Speech synthesis started");
-    } else {
-      console.error("Speech synthesis not supported");
-      
-      // Still update state even if speech synthesis is not supported
-      setState(prevState => ({
-        ...prevState,
-        currentStep: "answering"
-      }));
-      
-      toast.info("You can now provide your answer");
-      reject(new Error("Speech synthesis not supported"));
-    }
-  });
-}
-
-// Add recording functionality
-const startRecording = () => {
-  // Implemented in a separate edit
-};
-
-const stopRecording = async () => {
-  // Implemented in a separate edit
-};
-
-// Add a function to ask for a new question
-const askNewQuestion = async () => {
-  if (!state.category) return;
-  
-  setState(prevState => ({
-    ...prevState,
-    isLoading: true,
-    currentStep: "question"
-  }));
-  
-  toast.loading("Getting next question...");
-  
-  try {
-    const { questionText, audioData, hints, difficulty } = await fetchQuestion(state.category);
-    
-    toast.dismiss();
-    toast.success("New question received!");
-    
-    // Update state with the new question
-    setState(prevState => ({
-      ...prevState,
-      isLoading: false,
-      currentQuestion: questionText,
-      messages: [
-        ...prevState.messages,
-        { role: "assistant", content: questionText }
-      ],
-      hints,
-      difficulty
-    }));
-    
-    // If voice mode is enabled, play the question audio
-    if (state.voiceModeEnabled && audioData) {
-      await playAudioData(audioData);
-    } else if (state.voiceModeEnabled) {
-      await speakText(questionText);
-    } else {
-      setState(prevState => ({
-        ...prevState,
-        currentStep: "input"
-      }));
-    }
-  } catch (error: any) {
-    console.error("Error fetching new question:", error);
-    toast.dismiss();
-    toast.error(`Failed to get new question: ${error.message || "Unknown error"}`);
-    
-    setState(prevState => ({
-      ...prevState,
-      isLoading: false,
-      currentStep: "idle"
-    }));
-  }
-};
-
-// Function to reset the interview state
-function resetInterview() {
-  setState({
-    category: null,
-    isActive: false,
-    currentStep: "idle",
-    messages: [],
-    isLoading: false,
-    currentQuestion: "",
-    textInput: "",
-    voiceModeEnabled: state.voiceModeEnabled, // preserve the voice mode setting
-    hints: [],
-  });
-  
-  // Navigate back to the category selection
-  router.push('/problems');
-} 
