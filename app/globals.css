@@ -1,3 +1,387 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+/* Syntax highlighting styles for code blocks */
+pre code.hljs {
+  display: block;
+  padding: 1em;
+  overflow-x: auto;
+}
+
+/* Common styles for all themes */
+code.hljs {
+  padding: 3px 5px;
+  border-radius: 3px;
+}
+
+/* Inline code styling */
+:not(pre) > code,
+.inline-code {
+  background-color: rgba(175, 184, 193, 0.2);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+  white-space: normal;
+  display: inline;
+}
+
+/* For technical values like numbers, IPs, etc. that shouldn't wrap */
+:not(pre) > code[data-technically-value="true"],
+.inline-code[data-technically-value="true"] {
+  white-space: nowrap;
+}
+
+.dark :not(pre) > code,
+.dark .inline-code {
+  background-color: rgba(110, 118, 129, 0.4);
+  color: #e6e6e6;
+}
+
+/* Ensure TTL and other values render correctly */
+code.inline-code {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Make sure code blocks render correctly */
+pre code {
+  white-space: pre;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Light theme */
+.hljs {
+  color: #383a42;
+  background: #fafafa;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: #a0a1a7;
+  font-style: italic;
+}
+
+.hljs-doctag,
+.hljs-keyword,
+.hljs-formula {
+  color: #a626a4;
+}
+
+.hljs-section,
+.hljs-name,
+.hljs-selector-tag,
+.hljs-deletion,
+.hljs-subst {
+  color: #e45649;
+}
+
+.hljs-literal {
+  color: #0184bb;
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta .hljs-string {
+  color: #50a14f;
+}
+
+.hljs-attr,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-type,
+.hljs-selector-class,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-number {
+  color: #986801;
+}
+
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-meta,
+.hljs-selector-id,
+.hljs-title {
+  color: #4078f2;
+}
+
+.hljs-built_in,
+.hljs-title.class_,
+.hljs-class .hljs-title {
+  color: #c18401;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
+
+/* Dark theme overrides - applied when dark mode is active */
+.dark .hljs {
+  color: #abb2bf;
+  background: #282c34;
+}
+
+.dark .hljs-comment,
+.dark .hljs-quote {
+  color: #5c6370;
+  font-style: italic;
+}
+
+.dark .hljs-doctag,
+.dark .hljs-keyword,
+.dark .hljs-formula {
+  color: #c678dd;
+}
+
+.dark .hljs-section,
+.dark .hljs-name,
+.dark .hljs-selector-tag,
+.dark .hljs-deletion,
+.dark .hljs-subst {
+  color: #e06c75;
+}
+
+.dark .hljs-literal {
+  color: #56b6c2;
+}
+
+.dark .hljs-string,
+.dark .hljs-regexp,
+.dark .hljs-addition,
+.dark .hljs-attribute,
+.dark .hljs-meta .hljs-string {
+  color: #98c379;
+}
+
+.dark .hljs-attr,
+.dark .hljs-variable,
+.dark .hljs-template-variable,
+.dark .hljs-type,
+.dark .hljs-selector-class,
+.dark .hljs-selector-attr,
+.dark .hljs-selector-pseudo,
+.dark .hljs-number {
+  color: #d19a66;
+}
+
+.dark .hljs-symbol,
+.dark .hljs-bullet,
+.dark .hljs-link,
+.dark .hljs-meta,
+.dark .hljs-selector-id,
+.dark .hljs-title {
+  color: #61afef;
+}
+
+.dark .hljs-built_in,
+.dark .hljs-title.class_,
+.dark .hljs-class .hljs-title {
+  color: #e6c07b;
+}
+
+/* Additional styling for code blocks */
+.prose pre {
+  background-color: #f5f5f5;
+  border-radius: 0.375rem;
+  margin: 1.25em 0;
+  overflow: auto;
+}
+
+.dark .prose pre {
+  background-color: #282c34;
+}
+
+/* Hint styling */
+.prose-gray.prose-sm {
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.prose-gray.prose-sm p,
+.prose-gray.prose-sm ul,
+.prose-gray.prose-sm ol {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose-gray.prose-sm code {
+  font-size: 0.8em;
+}
+
+.prose-gray.prose-sm pre {
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+  border-radius: 0.25rem;
+}
+
+.prose-gray.prose-sm strong {
+  color: inherit;
+}
+
+/* Adjust inline code in hints */
+.prose-gray.prose-sm code.inline-code {
+  padding: 0.1em 0.3em;
+  white-space: normal;
+}
+
+/* Custom hint styling for prose-xs */
+.prose-xs {
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.prose-xs p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose-xs ul, 
+.prose-xs ol {
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+  padding-left: 1.25em;
+}
+
+.prose-xs li {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+
+.prose-xs li p {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+
+.prose-xs code {
+  font-size: 0.75em;
+  border-radius: 0.2rem;
+  padding: 0.1em 0.2em;
+  background-color: #f3f4f6;
+}
+
+.dark .prose-xs code {
+  background-color: #1e293b;
+}
+
+.prose-xs pre {
+  margin: 0.5em 0;
+  border-radius: 0.25rem;
+  padding: 0.65em;
+  font-size: 0.75em;
+  line-height: 1.4;
+  background-color: #f3f4f6;
+}
+
+.dark .prose-xs pre {
+  background-color: #1e293b;
+}
+
+.prose-xs strong {
+  color: inherit;
+  font-weight: 600;
+}
+
+.prose-xs h1, 
+.prose-xs h2, 
+.prose-xs h3, 
+.prose-xs h4 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+
+.prose-xs pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

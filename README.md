@@ -1,19 +1,112 @@
-# [Swift](https://swift-ai.vercel.app)
+# Cartesia - Technical Interview Preparation Assistant
 
-Swift is a fast AI voice assistant.
+An open-source study assistance tool for software engineers preparing for technical interviews. Cartesia simulates realistic interview experiences with AI-driven questions and feedback.
 
--   [Groq](https://groq.com) is used for fast inference of [OpenAI Whisper](https://github.com/openai/whisper) (for transcription) and [Meta Llama 3](https://llama.meta.com/llama3/) (for generating the text response).
--   [Cartesia](https://cartesia.ai)'s [Sonic](https://cartesia.ai/sonic) voice model is used for fast speech synthesis, which is streamed to the frontend.
--   [VAD](https://www.vad.ricky0123.com/) is used to detect when the user is talking, and run callbacks on speech segments.
--   The app is a [Next.js](https://nextjs.org) project written in TypeScript and deployed to [Vercel](https://vercel.com).
+## Features
 
-Thank you to the teams at Groq and Cartesia for providing access to their APIs for this demo!
+- **Interactive Technical Interviews**: Experience realistic interview practice with AI-driven questions and feedback
+- **Text-Based by Default**: Type your answers for maximum accessibility and ease of use
+- **Optional Voice Mode**: Switch to voice mode for a more immersive experience with speech input/output
+- **Real-time Feedback**: Receive detailed evaluation and feedback on your responses
+- **Multiple Technical Topics**: Choose from a wide range of software engineering topics
+- **Open Source**: Free to use and contribute to
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fai-ng%2Fswift&env=GROQ_API_KEY,CARTESIA_API_KEY&envDescription=Groq%20and%20Cartesia's%20APIs%20are%20used%20for%20transcription%2C%20text%20generation%2C%20and%20speech%20synthesis.&project-name=swift&repository-name=swift&demo-title=Swift&demo-description=A%20fast%2C%20open-source%20voice%20assistant%20powered%20by%20Groq%2C%20Cartesia%2C%20and%20Vercel.&demo-url=https%3A%2F%2Fswift-ai.vercel.app&demo-image=https%3A%2F%2Fswift-ai.vercel.app%2Fopengraph-image.png)
+## How It Works
 
-## Developing
+### Text Mode (Default)
+1. **Select a Topic**: Choose from various technical areas like algorithms, system design, networking, etc.
+2. **Read the Question**: The AI interviewer presents you with a technical question
+3. **Type Your Answer**: Respond to the question in a text box
+4. **Get Feedback**: Receive an evaluation of your answer with specific feedback and improvement suggestions
+5. **Continue the Interview**: Answer follow-up questions or request a new question
 
--   Clone the repository
--   Copy `.env.example` to `.env.local` and fill in the environment variables.
--   Run `pnpm install` to install dependencies.
--   Run `pnpm dev` to start the development server.
+### Voice Mode (Optional)
+1. **Enable Voice Mode**: Click the voice mode toggle in the header
+2. **Listen to Questions**: The AI interviewer asks you questions using text-to-speech
+3. **Respond Verbally**: Record your answer by speaking naturally
+4. **Get Feedback**: Receive the same detailed evaluation and feedback
+5. **Continue the Interview**: The conversation flow works the same as text mode
+
+## Implementation Plan
+
+### Phase 1: Core Interview Structure ✅
+- [x] Create project foundation with Next.js
+- [x] Design the interview interface
+- [x] Implement the Q&A flow
+- [x] Set up question generation and answer evaluation
+
+### Phase 2: Text & Voice Modes ✅
+- [x] Implement text-based input/output as default
+- [x] Add optional voice mode with speech recognition and synthesis
+- [x] Create toggle for switching between modes
+- [x] Ensure graceful fallbacks when permissions or browser capabilities are limited
+
+### Phase 3: UI/UX Refinement
+- [ ] Improve visual feedback during different interview stages
+- [ ] Add interview timers and progress tracking
+- [ ] Create user dashboard for tracking progress
+- [ ] Implement accessibility features
+
+### Phase 4: Advanced Features
+- [ ] Add difficulty levels for questions
+- [ ] Implement interview session scoring
+- [ ] Create personalized improvement recommendations
+- [ ] Add coding-specific interview modes
+
+## Example Questions
+
+Cartesia includes questions covering topics such as:
+
+- **System Design**: 
+  - How would you handle 100,000,000,000 file updates?
+  - How would you design a system to store 100TB of data?
+
+- **Networking**: 
+  - What's the difference between TCP and UDP?
+  - Explain how DNS resolution works
+
+- **Concurrency**: 
+  - What's the difference between a mutex and a semaphore?
+  - Explain deadlocks and how to prevent them
+
+- **Databases**: 
+  - NoSQL vs SQL databases - when would you use each?
+  - Explain database indexing and its importance
+
+- **Infrastructure**: 
+  - What are the differences between containers and VMs?
+  - Explain the concept of infrastructure as code
+
+## Technical Stack
+
+- **Frontend**: Next.js with React and TypeScript
+- **Styling**: Tailwind CSS for responsive design
+- **AI Integration**: Integration with Groq API for question generation and answer evaluation
+- **Speech Processing** (optional): 
+  - Web Speech API for text-to-speech
+  - Whisper API for transcription
+- **Deployment**: Vercel
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+# or
+pnpm install
+
+# Run the development server
+npm run dev
+# or
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+
+## Contributing
+
+Cartesia is an open-source project and we welcome contributions! Please feel free to submit a PR or open an issue if you have ideas for improvement.
+
+## License
+
+This project is open-sourced under the MIT license.

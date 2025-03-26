@@ -1,36 +1,33 @@
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
-import clsx from "clsx";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
-	title: "Swift",
+	title: "Cartesia",
 	description:
-		"A fast, open-source voice assistant powered by Groq, Cartesia, and Vercel.",
+		"Technical interview preparation assistant powered by AI.",
 };
 
 export default function RootLayout({
 	children,
-}: Readonly<{
+}: {
 	children: React.ReactNode;
-}>) {
+}) {
 	return (
-		<html lang="en">
-			<body
-				className={clsx(
-					GeistSans.variable,
-					GeistMono.variable,
-					"py-8 px-6 lg:p-10 dark:text-white bg-white dark:bg-black min-h-dvh flex flex-col justify-between antialiased font-sans select-none"
-				)}
-			>
-				<main className="flex flex-col items-center justify-center grow">
-					{children}
-				</main>
-
-				<Toaster richColors theme="system" />
+		<html lang="en" suppressHydrationWarning>
+			<body className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+				{children}
+				<Toaster 
+					position="top-center" 
+					toastOptions={{
+						style: {
+							background: 'hsl(var(--background))',
+							color: 'hsl(var(--foreground))',
+							border: '1px solid hsl(var(--border))',
+						},
+					}}
+				/>
 				<Analytics />
 			</body>
 		</html>
