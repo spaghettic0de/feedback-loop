@@ -35,17 +35,18 @@ An open-source study assistance tool for software engineers preparing for techni
 - [x] Implement the Q&A flow
 - [x] Set up question generation and answer evaluation
 
-### Phase 2: Text & Voice Modes ✅
+### Phase 2: Text Mode & UI Refinement
 - [x] Implement text-based input/output as default
-- [x] Add optional voice mode with speech recognition and synthesis
-- [x] Create toggle for switching between modes
-- [x] Ensure graceful fallbacks when permissions or browser capabilities are limited
-
-### Phase 3: UI/UX Refinement
 - [ ] Improve visual feedback during different interview stages
 - [ ] Add interview timers and progress tracking
 - [ ] Create user dashboard for tracking progress
 - [ ] Implement accessibility features
+
+### Phase 3: Voice Mode Support
+- [ ] Add optional voice mode with speech recognition and synthesis
+- [ ] Create toggle for switching between modes
+- [ ] Ensure graceful fallbacks when permissions or browser capabilities are limited
+- [ ] Optimize voice interaction experience
 
 ### Phase 4: Advanced Features
 - [ ] Add difficulty levels for questions
