@@ -13,6 +13,7 @@ export default function ProblemsLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
   // Extract the current problem ID from the URL if it exists
   const activeProblemId = pathname.startsWith('/problems/') 
@@ -24,7 +25,19 @@ export default function ProblemsLayout({
     // Generate a UUID for the new problem
     const newId = crypto.randomUUID();
     router.push(`/problems/${newId}`);
+    // Close mobile sidebar after navigation
+    setIsMobileSidebarOpen(false);
   };
+  
+  // Toggle mobile sidebar
+  const toggleMobileSidebar = () => {
+    setIsMobileSidebarOpen(prev => !prev);
+  };
+  
+  // Close sidebar when route changes on mobile
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [pathname]);
   
   // Load history from local storage on initial render
   useEffect(() => {
@@ -47,13 +60,21 @@ export default function ProblemsLayout({
   }, [history]);
   
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-white dark:bg-gray-950 overflow-hidden">
       <Sidebar 
         history={history} 
         activeProblemId={activeProblemId} 
-        onNewProblem={handleNewProblem} 
+        onNewProblem={handleNewProblem}
+        isMobileOpen={isMobileSidebarOpen}
+        onToggleMobile={toggleMobileSidebar}
       />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div 
+        className="flex-1 flex flex-col overflow-hidden relative"
+        style={{
+          // Make main content go behind sidebar on mobile when sidebar is open
+          zIndex: isMobileSidebarOpen ? 0 : 1
+        }}
+      >
         {children}
       </div>
     </div>

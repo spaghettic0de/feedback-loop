@@ -10,6 +10,7 @@ import rehypeHighlight from "rehype-highlight";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MarkdownComponents } from "@/lib/markdown-components";
+import Link from "next/link";
 
 // Import types and constants
 import { 
@@ -222,21 +223,21 @@ const StructuredEvaluation = ({ evaluation }: { evaluation: string }) => {
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Evaluation Results</h3>
-          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
-            <span className="text-3xl font-bold">{score}</span>
-            <span className="text-sm ml-0.5 mt-1">/5</span>
+      <div className="p-3 sm:p-6">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">Evaluation Results</h3>
+          <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+            <span className="text-2xl sm:text-3xl font-bold">{score}</span>
+            <span className="text-xs sm:text-sm ml-0.5 mt-1">/5</span>
           </div>
         </div>
         
         {strengths.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Strengths</h4>
-            <ul className="list-disc pl-5 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+          <div className="mb-3 sm:mb-4">
+            <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">Strengths</h4>
+            <ul className="list-disc pl-4 sm:pl-5 text-xs sm:text-sm text-gray-600 dark:text-gray-400 space-y-0.5 sm:space-y-1">
               {strengths.map((strength, i) => (
-                <li key={i} className="prose-sm dark:prose-invert">
+                <li key={i} className="prose-xs sm:prose-sm dark:prose-invert">
                   <ReactMarkdown
                     components={MarkdownComponents}
                     rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
@@ -250,11 +251,11 @@ const StructuredEvaluation = ({ evaluation }: { evaluation: string }) => {
         )}
         
         {improvements.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Areas for Improvement</h4>
-            <ul className="list-disc pl-5 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+          <div className="mb-3 sm:mb-4">
+            <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">Areas for Improvement</h4>
+            <ul className="list-disc pl-4 sm:pl-5 text-xs sm:text-sm text-gray-600 dark:text-gray-400 space-y-0.5 sm:space-y-1">
               {improvements.map((improvement, i) => (
-                <li key={i} className="prose-sm dark:prose-invert">
+                <li key={i} className="prose-xs sm:prose-sm dark:prose-invert">
                   <ReactMarkdown
                     components={MarkdownComponents}
                     rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
@@ -268,11 +269,11 @@ const StructuredEvaluation = ({ evaluation }: { evaluation: string }) => {
         )}
         
         {missedPoints.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Key Points Missed</h4>
-            <ul className="list-disc pl-5 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+          <div className="mb-3 sm:mb-4">
+            <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">Key Points Missed</h4>
+            <ul className="list-disc pl-4 sm:pl-5 text-xs sm:text-sm text-gray-600 dark:text-gray-400 space-y-0.5 sm:space-y-1">
               {missedPoints.map((point, i) => (
-                <li key={i} className="prose-sm dark:prose-invert">
+                <li key={i} className="prose-xs sm:prose-sm dark:prose-invert">
                   <ReactMarkdown
                     components={MarkdownComponents}
                     rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
@@ -286,9 +287,9 @@ const StructuredEvaluation = ({ evaluation }: { evaluation: string }) => {
         )}
         
         {followUp && (
-          <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Follow-up Question</h4>
-            <div className="text-sm text-gray-600 dark:text-gray-400 prose dark:prose-invert prose-sm">
+          <div className="mb-3 sm:mb-4">
+            <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">Follow-up Question</h4>
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 prose-xs sm:prose-sm dark:prose-invert">
               <ReactMarkdown
                 components={MarkdownComponents}
                 rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
@@ -300,9 +301,9 @@ const StructuredEvaluation = ({ evaluation }: { evaluation: string }) => {
         )}
         
         {idealResponse && (
-          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ideal Response Example</h4>
-            <div className="text-sm text-gray-600 dark:text-gray-400 prose dark:prose-invert prose-sm max-w-none">
+          <div className="mt-4 sm:mt-6 pt-3 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">Ideal Response Example</h4>
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 prose-xs sm:prose-sm dark:prose-invert max-w-none">
               <ReactMarkdown
                 components={MarkdownComponents}
                 rehypePlugins={[rehypeRaw, rehypeSanitize, [rehypeHighlight, { ignoreMissing: true }]]}
@@ -973,30 +974,30 @@ export default function ProblemPage() {
   // CategorySelection component
   function CategorySelection({ onSelectCategory }: { onSelectCategory: (categoryId: string) => void }) {
     return (
-      <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-medium text-gray-900 dark:text-white mb-3">
+      <div className="max-w-3xl mx-auto px-3 sm:px-0">
+        <h2 className="text-2xl sm:text-3xl font-medium text-gray-900 dark:text-white mb-2 sm:mb-3">
           Select a Category
         </h2>
-        <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
+        <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
           Choose a topic for your technical interview practice:
         </p>
         
         {CATEGORY_SECTIONS.map((section) => (
-          <div key={section.id} className="mb-8">
-            <h3 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-4">
+          <div key={section.id} className="mb-6 sm:mb-8">
+            <h3 className="text-lg sm:text-xl font-medium text-gray-800 dark:text-gray-200 mb-3 sm:mb-4">
               {section.name}
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
               {section.categories.map((category) => (
                 <button
                   key={category.id}
                   onClick={() => onSelectCategory(category.id)}
-                  className="group p-5 bg-gray-50 dark:bg-gray-900 rounded-xl hover:shadow-md transition-all duration-200 text-left"
+                  className="group p-4 sm:p-5 bg-gray-50 dark:bg-gray-900 rounded-xl hover:shadow-md transition-all duration-200 text-left"
                 >
-                  <h4 className="font-medium text-lg text-gray-900 dark:text-white mb-2">
+                  <h4 className="font-medium text-base sm:text-lg text-gray-900 dark:text-white mb-1 sm:mb-2">
                     {category.name}
                   </h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                     {getCategoryDescription(category.id)}
                   </p>
                 </button>
@@ -1064,31 +1065,31 @@ export default function ProblemPage() {
   // Render category selection when not active
   if (!state.isActive) {
     return (
-      <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-950 p-6">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-medium text-gray-900 dark:text-white mb-3">
+      <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-950 p-3 sm:p-6">
+        <div className="max-w-3xl mx-auto px-3 sm:px-0">
+          <h2 className="text-2xl sm:text-3xl font-medium text-gray-900 dark:text-white mb-2 sm:mb-3">
             Select a Category
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
+          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
             Choose a topic for your technical interview practice:
           </p>
           
           {CATEGORY_SECTIONS.map((section) => (
-            <div key={section.id} className="mb-8">
-              <h3 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-4">
+            <div key={section.id} className="mb-6 sm:mb-8">
+              <h3 className="text-lg sm:text-xl font-medium text-gray-800 dark:text-gray-200 mb-3 sm:mb-4">
                 {section.name}
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
                 {section.categories.map((category) => (
                   <button
                     key={category.id}
                     onClick={() => startInterview(category.id)}
-                    className="group p-5 bg-gray-50 dark:bg-gray-900 rounded-xl hover:shadow-md transition-all duration-200 text-left"
+                    className="group p-4 sm:p-5 bg-gray-50 dark:bg-gray-900 rounded-xl hover:shadow-md transition-all duration-200 text-left"
                   >
-                    <h4 className="font-medium text-lg text-gray-900 dark:text-white mb-2">
+                    <h4 className="font-medium text-base sm:text-lg text-gray-900 dark:text-white mb-1 sm:mb-2">
                       {category.name}
                     </h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                       {getCategoryDescription(category.id)}
                     </p>
                   </button>
@@ -1104,17 +1105,25 @@ export default function ProblemPage() {
   // Placeholder content for active state
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <header className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 py-3 px-6">
-        <div className="flex justify-between items-center">
+      <header className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 py-2 sm:py-3 px-3 sm:px-6">
+        {/* Mobile header - simple with just title */}
+        <div className="flex md:hidden justify-between items-center">
+          <Link href="/" className="text-base font-medium text-gray-900 dark:text-white">
+            feedback.loop
+          </Link>
+        </div>
+
+        {/* Desktop header - with category, difficulty, status and buttons */}
+        <div className="hidden md:flex justify-between items-center">
           <div className="flex items-center">
-            <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-3">
+            <h2 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mr-2 sm:mr-3 truncate max-w-[120px] sm:max-w-none">
               {FLATTENED_CATEGORIES.find((c) => c.id === state.category)?.name || "Interview"}
             </h2>
             {state.difficulty && (
               <DifficultyBadge difficulty={state.difficulty} />
             )}
-            <div className="flex items-center ml-3">
-              <div className={`h-2 w-2 rounded-full mr-1.5 ${
+            <div className="flex items-center ml-2 sm:ml-3">
+              <div className={`h-2 w-2 rounded-full mr-1 sm:mr-1.5 ${
                 state.currentStep === "question" ? "bg-blue-500 animate-pulse" :
                 state.currentStep === "answering" ? "bg-green-500" :
                 state.currentStep === "recording" ? "bg-red-500 animate-pulse" :
@@ -1122,7 +1131,7 @@ export default function ProblemPage() {
                 state.currentStep === "input" ? "bg-green-500" :
                 "bg-gray-400"
               }`}></div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
                 {state.currentStep === "question" && "Listening to question..."}
                 {state.currentStep === "answering" && "Ready for your answer"}
                 {state.currentStep === "recording" && "Recording your answer..."}
@@ -1133,22 +1142,24 @@ export default function ProblemPage() {
             </div>
           </div>
           
-          <div className="flex space-x-3">
+          <div className="flex space-x-2 sm:space-x-3">
             <Button
               onClick={toggleVoiceMode}
               variant={state.voiceModeEnabled ? "secondary" : "outline"}
               size="sm"
-              className={state.voiceModeEnabled ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800" : ""}
+              className={`text-xs sm:text-sm px-2 sm:px-3 ${state.voiceModeEnabled ? "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800" : ""}`}
             >
               {state.voiceModeEnabled ? (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>
-                  Voice Mode: On
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 sm:mr-1.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>
+                  <span className="hidden sm:inline">Voice Mode: On</span>
+                  <span className="sm:hidden">Voice On</span>
                 </>
               ) : (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><line x1="3" y1="3" x2="21" y2="21"></line></svg>
-                  Voice Mode: Off
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 sm:mr-1.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><line x1="3" y1="3" x2="21" y2="21"></line></svg>
+                  <span className="hidden sm:inline">Voice Mode: Off</span>
+                  <span className="sm:hidden">Voice Off</span>
                 </>
               )}
             </Button>
@@ -1156,19 +1167,20 @@ export default function ProblemPage() {
               onClick={() => {}}
               variant="outline"
               size="sm"
+              className="text-xs sm:text-sm px-2 sm:px-3"
             >
-              End Interview
+              End
             </Button>
           </div>
         </div>
       </header>
       
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto p-3 sm:p-6">
         {state.isActive ? (
           <div className="max-w-3xl mx-auto">
             {/* Category and difficulty header */}
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-semibold">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h1 className="text-xl sm:text-2xl font-semibold">
                 {getCategoryName(state.category || '') || "Interview"}
               </h1>
               {state.difficulty && (
@@ -1178,11 +1190,11 @@ export default function ProblemPage() {
             
             {/* Question display first - with Interviewer label */}
             {state.currentQuestion && (
-              <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-4 mb-4 border border-gray-200 dark:border-gray-800">
+              <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-3 sm:p-4 mb-4 border border-gray-200 dark:border-gray-800">
                 <div className="mb-2 text-sm font-medium">
                   Interviewer
                 </div>
-                <div className="prose dark:prose-invert max-w-none">
+                <div className="prose dark:prose-invert prose-sm sm:prose-base max-w-none">
                   <ReactMarkdown
                     components={MarkdownComponents}
                     rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
@@ -1193,12 +1205,12 @@ export default function ProblemPage() {
                 
                 {/* Hints section right after the question */}
                 {state.hints.length > 0 && (
-                  <div className="mt-4 space-y-2">
+                  <div className="mt-3 sm:mt-4 space-y-2">
                     {state.hints.map((hint: Hint, index: number) => (
                       <div key={index} className="bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden">
                         <button
                           onClick={() => toggleHintVisibility(index)}
-                          className="w-full px-4 py-2 text-left flex justify-between items-center text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+                          className="w-full px-3 sm:px-4 py-2 text-left flex justify-between items-center text-xs sm:text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
                         >
                           <span className="font-medium">Hint {index + 1}</span>
                           <span>
@@ -1214,7 +1226,7 @@ export default function ProblemPage() {
                           </span>
                         </button>
                         {hint.visible && (
-                          <div className="px-4 pb-3 prose-sm dark:prose-invert prose-gray max-w-none">
+                          <div className="px-3 sm:px-4 pb-3 prose-xs sm:prose-sm dark:prose-invert prose-gray max-w-none">
                             <ReactMarkdown
                               components={MarkdownComponents}
                               rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
@@ -1232,7 +1244,7 @@ export default function ProblemPage() {
 
             {/* Messages - skip the first message which is the question */}
             {state.messages.length > 1 && (
-              <div className="space-y-6 mb-6">
+              <div className="space-y-4 sm:space-y-6 mb-4 sm:mb-6">
                 {state.messages.slice(1).map((message: Message, index: number) => {
                   // Add 1 to index since we're using slice(1)
                   const actualIndex = index + 1;
@@ -1245,13 +1257,13 @@ export default function ProblemPage() {
                   return (
                     <div 
                       key={actualIndex} 
-                      className={`p-4 rounded-lg ${
+                      className={`p-3 sm:p-4 rounded-lg ${
                         message.role === "user"
                           ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900"
                           : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800"
                       }`}
                     >
-                      <div className="mb-2 text-sm font-medium">
+                      <div className="mb-2 text-xs sm:text-sm font-medium">
                         {message.role === "user" ? "You" : "Interviewer"}
                       </div>
                       
@@ -1259,7 +1271,7 @@ export default function ProblemPage() {
                       {isEvaluation ? (
                         <StructuredEvaluation evaluation={message.content} />
                       ) : (
-                        <div className="prose dark:prose-invert max-w-none">
+                        <div className="prose-xs sm:prose-sm dark:prose-invert max-w-none">
                           <ReactMarkdown
                             components={MarkdownComponents}
                             rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
@@ -1276,13 +1288,13 @@ export default function ProblemPage() {
 
             {/* Input area */}
             {state.currentStep === "input" && (
-              <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4">
-                <div className="mb-4">
+              <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-3 sm:p-4">
+                <div className="mb-3 sm:mb-4">
                   <Textarea
                     placeholder="Type your answer..."
                     value={state.textInput}
                     onChange={handleTextInputChange}
-                    className="w-full h-32 resize-none"
+                    className="w-full h-24 sm:h-32 resize-none"
                   />
                 </div>
                 <div className="flex justify-end">
@@ -1295,7 +1307,7 @@ export default function ProblemPage() {
             
             {/* Actions section */}
             {state.currentStep === "idle" && (
-              <div className="flex justify-center mt-6">
+              <div className="flex justify-center mt-4 sm:mt-6">
                 <Button onClick={askNewQuestion}>
                   Ask New Question
                 </Button>
@@ -1304,10 +1316,10 @@ export default function ProblemPage() {
             
             {/* Loading indicator */}
             {state.isLoading && (
-              <div className="flex justify-center my-8">
-                <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4 flex items-center space-x-3">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 dark:border-blue-400"></div>
-                  <div className="text-blue-700 dark:text-blue-300 text-sm">Processing...</div>
+              <div className="flex justify-center my-6 sm:my-8">
+                <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 flex items-center space-x-3">
+                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-blue-600 dark:border-blue-400"></div>
+                  <div className="text-blue-700 dark:text-blue-300 text-xs sm:text-sm">Processing...</div>
                 </div>
               </div>
             )}
